@@ -1,0 +1,530 @@
+/* ── APP UI STYLES ── */
+:root {
+    --editor-width: 450px;
+    --app-bg: #f0f2f5;
+    --panel-bg: #ffffff;
+    --border-color: #dddfe2;
+    --primary-color: #1847d4;
+    --secondary-color: #5c5f72;
+    
+    /* CV Default Variables (Dynamic) */
+    --cv-base-font: 13px;
+    --cv-line-height: 1.6;
+    --cv-section-margin: 24px;
+    --cv-entry-margin: 18px;
+    --cv-page-padding: 52px 60px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--app-bg);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Editor Pane */
+.editor-pane {
+    width: var(--editor-width);
+    background: var(--panel-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.editor-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-header h1 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#cv-form {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section h3 {
+    font-size: 14px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.full-width { width: 100%; }
+
+.dynamic-item {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.item-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.item-header input { flex: 1; }
+
+.remove-item {
+    background: #ff4d4f;
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.add-item {
+    background: #52c41a;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.primary-btn, .secondary-btn {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+}
+
+.primary-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.secondary-btn {
+    background: #f0f2f5;
+    color: #333;
+    border: 1px solid var(--border-color);
+}
+
+.editor-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.help-text {
+    font-size: 10px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* Preview Pane */
+.preview-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    padding: 0; /* Changed from 40px to allow scroll container to fill */
+    background: #e8ebf4;
+}
+
+#cv-preview-container {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    background: #e8ebf4;
+}
+
+.cv-page {
+    background: white;
+    width: 210mm; /* A4 Width */
+    min-height: 297mm; /* A4 Height */
+    padding: var(--cv-page-padding);
+    box-shadow: 0 8px 48px rgba(18,30,80,.13);
+    margin-bottom: 20px;
+    position: relative;
+    transition: all 0.2s ease;
+    background-clip: padding-box;
+}
+
+/* Show second page background if content overflows */
+.cv-page.two-pages {
+    min-height: 594mm; /* 297 * 2 */
+}
+
+.cv-entry,
+.cv-skill-row,
+.cv-section,
+.cv-cert-item,
+.cv-lang,
+ul.cv-bullets li {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.cv-section-title {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+/* Page break indicator - updated for 2 pages */
+.cv-page::after {
+    content: "Page 1 Break";
+    position: absolute;
+    top: 297mm;
+    left: 0;
+    right: 0;
+    height: 0;
+    border-top: 2px dashed #ff4d4f;
+    z-index: 100;
+    pointer-events: none;
+    font-size: 10px;
+    color: #ff4d4f;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.cv-page.two-pages::before {
+    content: "Page 2 End";
+    position: absolute;
+    top: 594mm;
+    left: 0;
+    right: 0;
+    height: 0;
+    border-top: 2px dashed #ff4d4f;
+    z-index: 100;
+    pointer-events: none;
+    font-size: 10px;
+    color: #ff4d4f;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.preview-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    align-items: center;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.zoom-controls button {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* ── CV CONTENT STYLES (FROM Z.HTML) ── */
+.cv-page {
+    font-family: 'Sora', sans-serif;
+    font-size: var(--cv-base-font);
+    line-height: var(--cv-line-height);
+    color: #0f1117;
+}
+
+.cv-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 24px;
+    align-items: start;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #e2e5f0;
+}
+
+.cv-name {
+    font-size: calc(var(--cv-base-font) * 2.46);
+    font-weight: 700;
+    letter-spacing: -.8px;
+    line-height: 1.05;
+}
+
+.cv-tagline {
+    font-size: calc(var(--cv-base-font) * 0.96);
+    color: #5c5f72;
+    margin-top: 5px;
+}
+
+.cv-medal {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fffbeb;
+    border: 1px solid #f5c842;
+    color: #7a5200;
+    font-size: calc(var(--cv-base-font) * 0.84);
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+}
+
+.cv-header-right {
+    text-align: right;
+    font-size: calc(var(--cv-base-font) * 0.88);
+    color: #5c5f72;
+    line-height: 1.9;
+}
+
+.cv-header-right a {
+    color: #1a5cf6;
+    text-decoration: none;
+}
+
+.cv-section { margin-top: var(--cv-section-margin); }
+
+.cv-section-title {
+    font-size: calc(var(--cv-base-font) * 0.73);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #1847d4;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #1847d4;
+    margin-bottom: 16px;
+}
+
+.cv-summary {
+    font-size: var(--cv-base-font);
+    color: #1e2030;
+}
+
+.cv-entry {
+    margin-bottom: var(--cv-entry-margin);
+}
+
+.cv-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.cv-entry-title { font-weight: 600; font-size: calc(var(--cv-base-font) * 1.04); }
+.cv-entry-date { font-size: calc(var(--cv-base-font) * 0.84); font-family: 'JetBrains Mono', monospace; color: #5c5f72; }
+.cv-entry-org { font-size: calc(var(--cv-base-font) * 0.92); color: #5c5f72; margin-top: 2px; }
+
+ul.cv-bullets {
+    list-style: none;
+    margin-top: 4px;
+}
+
+ul.cv-bullets li {
+    padding-left: 16px;
+    position: relative;
+    font-size: calc(var(--cv-base-font) * 0.96);
+}
+
+ul.cv-bullets li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: #1a5cf6;
+    font-size: 9px;
+    top: 4px;
+}
+
+.cv-project-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.cv-project-tag {
+    font-size: calc(var(--cv-base-font) * 0.77);
+    font-weight: 600;
+    background: #eef2ff;
+    color: #1847d4;
+    padding: 2px 9px;
+    border-radius: 20px;
+}
+
+.cv-tech-line {
+    margin-top: 6px;
+    font-size: calc(var(--cv-base-font) * 0.84);
+    color: #5c5f72;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+}
+
+.bullet-sep {
+    padding: 0 4px;
+    color: #cbd5e1;
+}
+
+.cv-skill-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.cv-skill-label {
+    font-weight: 600;
+    color: #1847d4;
+    min-width: 172px;
+    font-size: calc(var(--cv-base-font) * 0.92);
+}
+
+.cv-skill-block {
+    font-size: calc(var(--cv-base-font) * 0.96);
+    line-height: 1.6;
+}
+
+.cv-cert-item {
+    font-size: calc(var(--cv-base-font) * 0.96);
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 4px;
+}
+
+.cv-cert-item::before {
+    content: '↗';
+    position: absolute;
+    left: 0;
+    color: #1a5cf6;
+    font-weight: 700;
+}
+
+.cv-lang-row { display: flex; gap: 28px; flex-wrap: wrap; }
+.cv-lang strong { font-weight: 600; }
+.cv-lang span { color: #5c5f72; font-size: calc(var(--cv-base-font) * 0.88); margin-left: 4px; }
+
+/* Print Styles */
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    html, body {
+        height: auto;
+        background: white;
+    }
+
+    .editor-pane, .preview-controls { display: none !important; }
+    
+    .app-container { display: block; height: auto; width: 100%; }
+    
+    .preview-pane { 
+        padding: 0 !important; 
+        margin: 0 !important;
+        background: white !important; 
+        overflow: visible !important; 
+        display: block !important; 
+        width: 100% !important;
+    }
+    
+    #cv-preview-container { 
+        overflow: visible !important; 
+        padding: 0 !important; 
+        display: block !important; 
+        width: 100% !important;
+        background: white !important;
+    }
+    
+    .cv-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        height: 297mm !important; /* Force exact height per page in print */
+        overflow: hidden !important;
+        page-break-after: always !important;
+        background: white !important;
+    }
+    
+    .cv-page.two-pages {
+        height: 594mm !important; /* Total height for 2 pages */
+    }
+
+    .cv-page::after, .cv-page::before { display: none !important; }
+    
+    /* Ensure dynamic margins/padding from JS are respected in print */
+    .cv-entry, .cv-section, .cv-skill-row {
+        break-inside: avoid !important;
+    }
+}

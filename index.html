@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --editor-w:440px;
+  --editor-zoom:1;
+  --blue:#1847d4;
+  --blue-light:#eef2ff;
+  --border:#dde1e8;
+  --muted:#5c5f72;
+  --text:#0f1117;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#eef0f5;height:100vh;overflow:hidden;display:flex}
+.editor-pane{width:var(--editor-w);min-width:320px;max-width:650px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:relative}
+.editor-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+.editor-header h1{font-size:15px;font-weight:700;color:var(--blue)}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.primary-btn,.secondary-btn{border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;padding:6px 12px}
+.primary-btn{background:var(--blue);color:#fff}.secondary-btn{background:#f0f2f5;color:#333;border:1px solid var(--border)}
+.editor-body{flex:1;overflow:auto;transform:scale(var(--editor-zoom));transform-origin:top left;width:calc(100% / var(--editor-zoom));padding:14px}
+#cv-form{padding:0}
+.form-section{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #eee}.form-section h3{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.section-header h3{margin-bottom:0}
+.input-group{margin-bottom:9px}.input-group label{display:block;font-size:10px;font-weight:600;color:#888;margin-bottom:3px}
+input[type=text],input[type=email],textarea{width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:12px;color:var(--text)}
+input:focus,textarea:focus{outline:none;border-color:var(--blue)}textarea{resize:vertical;min-height:50px}
+.full-width{width:100%;margin-bottom:6px}.help-text{font-size:10px;color:#aaa;margin-top:3px}
+.dynamic-item{background:#f8f9fc;padding:9px;border-radius:5px;margin-bottom:8px;border:1px solid #e4e8f0}.item-header{display:flex;gap:6px;margin-bottom:6px}.item-header input{flex:1}
+.remove-item{background:#ff4d4f;color:#fff;border:none;width:22px;height:22px;border-radius:4px;cursor:pointer;font-weight:700;flex-shrink:0}.add-item{background:var(--blue);color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.editor-zoom-bar{position:absolute;left:12px;bottom:12px;right:12px;background:rgba(255,255,255,.96);border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.editor-zoom-bar label{font-size:11px;font-weight:700;color:#333;white-space:nowrap}.editor-zoom-bar input{flex:1}.editor-zoom-bar span{font-size:11px;font-weight:700;color:var(--blue);min-width:36px;text-align:right}
+.resize-handle{width:8px;cursor:col-resize;background:linear-gradient(to right, transparent 0, transparent 2px, #b9c0d0 2px, #b9c0d0 6px, transparent 6px);position:relative;flex-shrink:0}
+.resize-handle:hover{background:linear-gradient(to right, transparent 0, transparent 2px, var(--blue) 2px, var(--blue) 6px, transparent 6px)}
+main.preview-pane{flex:1;display:flex;flex-direction:column;background:#cdd1de;overflow:hidden}.preview-controls{padding:8px 14px;background:#bdc3d4;display:flex;align-items:center;gap:14px;font-size:12px;flex-shrink:0;flex-wrap:wrap}.preview-controls span{font-weight:600;color:#333}
+.zoom-controls{display:flex;align-items:center;gap:8px}.zoom-controls button{background:#fff;border:1px solid #aaa;width:22px;height:22px;border-radius:4px;cursor:pointer;font-weight:700;font-size:13px;line-height:1}
+#page-count{background:#fff;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}.page-ok{color:#389e0d}.page-over{color:#ff4d4f}
+.fs-control{display:flex;align-items:center;gap:7px;margin-left:auto}.fs-control label{font-size:11px;font-weight:600;color:#333}#fs-slider{width:90px;cursor:pointer}#fs-value{font-size:11px;font-weight:700;color:var(--blue);min-width:28px}
+#cv-preview-container{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:28px}#cv-wrap{position:relative;transform-origin:top center;flex-shrink:0}
+#cv-preview{width:210mm;background:#fff;font-family:'Sora',sans-serif;position:relative;box-shadow:0 6px 40px rgba(0,0,0,.18)}#cv-preview{--fs:12px;font-size:var(--fs);line-height:1.52;color:var(--text);padding:14mm 16mm}
+.page2-top-margin{display:block;height:14mm}.cv-block{break-inside:avoid;page-break-inside:avoid}.cv-section-title{break-after:avoid;page-break-after:avoid}
+.cv-header{display:grid;grid-template-columns:1fr auto;gap:0 20px;margin-bottom:calc(var(--fs)*1.6);padding-bottom:calc(var(--fs)*1.4);border-bottom:2px solid #e2e5f0;align-items:start}.cv-name{font-size:calc(var(--fs)*2.25);font-weight:700;letter-spacing:-.5px;line-height:1.05}.cv-tagline{font-size:calc(var(--fs)*.9);color:var(--muted);margin-top:4px}.cv-medal{display:inline-flex;align-items:center;gap:4px;background:#fffbeb;border:1px solid #f5c842;color:#7a5200;font-size:calc(var(--fs)*.78);font-weight:600;padding:2px 9px;border-radius:20px;margin-top:7px}
+.cv-header-right{text-align:right;font-size:calc(var(--fs)*.84);color:var(--muted);line-height:1.9}.cv-header-right a{color:var(--muted);text-decoration:none;font-family:inherit;font-size:inherit}.cv-header-right a:hover{color:var(--blue)}
+.cv-section{margin-top:calc(var(--fs)*1.3)}.cv-section-title{font-size:calc(var(--fs)*.69);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);padding-bottom:4px;border-bottom:2px solid var(--blue);margin-bottom:calc(var(--fs)*1.0)}.cv-summary{font-size:var(--fs);color:#1e2030}
+.cv-entry{margin-bottom:calc(var(--fs)*1.1)}.cv-entry-header{display:flex;justify-content:space-between;align-items:baseline}.cv-entry-title{font-weight:600;font-size:calc(var(--fs)*1.01)}.cv-entry-title a{color:inherit;text-decoration:none;font-weight:600;font-size:calc(var(--fs)*1.01);font-family:inherit}.cv-entry-title a:hover{color:var(--blue)}.cv-entry-date{font-size:calc(var(--fs)*.81);font-family:'JetBrains Mono',monospace;color:var(--muted)}.cv-entry-org{font-size:calc(var(--fs)*.87);color:var(--muted);margin-top:1px}
+ul.cv-bullets{list-style:none;margin-top:3px}ul.cv-bullets li{padding-left:13px;position:relative;font-size:calc(var(--fs)*.93)}ul.cv-bullets li::before{content:'▸';position:absolute;left:0;color:#1a5cf6;font-size:8px;top:4px}
+.cv-project-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}.cv-project-tag{font-size:calc(var(--fs)*.74);font-weight:600;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:20px;white-space:nowrap}.cv-tech-line{margin-top:4px;font-size:calc(var(--fs)*.84);color:var(--muted);font-family:'JetBrains Mono',monospace}
+.cv-skill-row{display:flex;gap:10px;margin-bottom:6px}.cv-skill-label{font-weight:600;color:var(--blue);min-width:155px;font-size:calc(var(--fs)*.89)}.cv-skill-val{font-size:calc(var(--fs)*.89);flex:1}
+.cv-cert-item{font-size:calc(var(--fs)*.92);padding-left:15px;position:relative;margin-bottom:3px}.cv-cert-item::before{content:'↗';position:absolute;left:0;color:#1a5cf6;font-weight:700}.cv-cert-item a{color:var(--text);text-decoration:none;font-family:inherit;font-size:inherit}.cv-cert-item a:hover{color:var(--blue)}
+.cv-lang-row{display:flex;gap:22px;flex-wrap:wrap}.cv-lang strong{font-weight:600}.cv-lang span{color:var(--muted);font-size:calc(var(--fs)*.85);margin-left:2px}
+#break-line{position:absolute;left:0;right:0;border-top:2px dashed #e53935;pointer-events:none;z-index:100}#break-line::after{content:"✂ page break";position:absolute;right:8px;top:-15px;font-size:9px;color:#e53935;font-family:monospace;background:#fff;padding:0 3px}
+@media print{@page{size:A4;margin:14mm 16mm}body{display:block;background:#fff;overflow:visible;height:auto}aside.editor-pane,.preview-controls,.resize-handle,.editor-zoom-bar{display:none!important}main.preview-pane{display:block;overflow:visible;background:#fff}#cv-preview-container{display:block;overflow:visible;padding:0}#cv-wrap{transform:none!important;width:100%!important;height:auto!important}#cv-preview{box-shadow:none;width:100%;padding:0}.page2-top-margin{display:none!important}#break-line{display:none!important}.cv-block{break-inside:avoid;page-break-inside:avoid}.cv-section-title{break-after:avoid;page-break-after:avoid}}
+</style>
+</head>
+<body>
+<aside class="editor-pane" id="editor-pane">
+  <header class="editor-header">
+    <h1>📄 CV Editor</h1>
+    <div class="actions">
+      <button id="print-btn" class="primary-btn">🖨 Print PDF</button>
+      <button id="reset-btn" class="secondary-btn">↺ Reset</button>
+    </div>
+  </header>
+  <div class="editor-body">
+    <form id="cv-form">
+      <section class="form-section">
+        <h3>Header</h3>
+        <div class="input-group"><label>Full Name</label><input type="text" name="name"></div>
+        <div class="input-group"><label>Tagline</label><textarea name="tagline" rows="2"></textarea></div>
+        <div class="input-group"><label>Medal / Award (leave blank to hide)</label><input type="text" name="medal"></div>
+        <div class="input-group"><label>Location</label><input type="text" name="location"></div>
+        <div class="input-group"><label>Phone</label><input type="text" name="phone"></div>
+        <div class="input-group"><label>Email</label><input type="email" name="email"></div>
+        <div class="input-group"><label>Links (Name|URL, one per line)</label><textarea name="links" rows="4"></textarea><p class="help-text">Format: Label|URL</p></div>
+      </section>
+      <section class="form-section">
+        <h3>About / Summary</h3><textarea name="summary" rows="6"></textarea><p class="help-text">Use **text** for bold, _text_ for italic</p>
+      </section>
+      <section class="form-section" id="experience-section">
+        <div class="section-header"><h3>Experience</h3><button type="button" class="add-item" data-section="experience">+ Add</button></div>
+        <div class="items-container"></div>
+      </section>
+      <section class="form-section" id="projects-section">
+        <div class="section-header"><h3>Projects</h3><button type="button" class="add-item" data-section="projects">+ Add</button></div>
+        <div class="items-container"></div>
+      </section>
+      <section class="form-section">
+        <h3>Skills</h3>
+        <div class="input-group"><textarea name="skills" rows="6"></textarea></div>
+      </section>
+      <section class="form-section" id="education-section">
+        <div class="section-header"><h3>Education</h3><button type="button" class="add-item" data-section="education">+ Add</button></div>
+        <div class="items-container"></div>
+      </section>
+      <section class="form-section">
+        <h3>Certifications (Text|URL, one per line)</h3><textarea name="certifications" rows="4"></textarea>
+      </section>
+      <section class="form-section">
+        <h3>Languages (Lang|Level, one per line)</h3><textarea name="languages" rows="3"></textarea>
+      </section>
+    </form>
+  </div>
+  <div class="editor-zoom-bar">
+    <label>Editor Zoom</label>
+    <input type="range" id="editor-zoom-slider" min="0.8" max="1.3" step="0.05" value="1">
+    <span id="editor-zoom-value">100%</span>
+  </div>
+</aside>
+<div class="resize-handle" id="resize-handle" title="Drag to resize editor"></div>
+<main class="preview-pane">
+  <div class="preview-controls">
+    <div id="page-count" class="page-ok">— pages</div>
+    <div class="zoom-controls"><button id="zoom-out">−</button><span id="zoom-level">70%</span><button id="zoom-in">+</button></div>
+    <div class="fs-control"><label>Font Size</label><input type="range" id="fs-slider" min="8" max="15" step="0.5" value="12"><span id="fs-value">12px</span></div>
+  </div>
+  <div id="cv-preview-container"><div id="cv-wrap"><div id="cv-preview"></div><div id="break-line"></div></div></div>
+</main>
+<template id="experience-template">
+  <div class="dynamic-item" data-type="experience">
+    <div class="item-header">
+      <input type="text" name="title" placeholder="Job Title">
+      <input type="text" name="date" placeholder="Date Range" style="max-width:130px">
+      <button type="button" class="remove-item">×</button>
+    </div>
+    <input type="text" name="org" placeholder="Organization · Location · Mode" class="full-width">
+    <input type="text" name="url" placeholder="Company URL (optional)" class="full-width">
+    <textarea name="bullets" placeholder="Bullet points — one per line" rows="3"></textarea>
+  </div>
+</template>
+<template id="projects-template">
+  <div class="dynamic-item" data-type="project">
+    <div class="item-header"><input type="text" name="name" placeholder="Project Name"><button type="button" class="remove-item">×</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px"><input type="text" name="tag" placeholder="Tag / Category"><input type="text" name="url" placeholder="https://github.com/..."></div>
+    <textarea name="bullets" placeholder="Bullet points — one per line" rows="3"></textarea>
+    <input type="text" name="tech" placeholder="Tech stack: Python · LangChain · ..." class="full-width" style="margin-top:4px">
+  </div>
+</template>
+<template id="education-template">
+  <div class="dynamic-item" data-type="education">
+    <div class="item-header"><input type="text" name="title" placeholder="Degree / Program"><input type="text" name="date" placeholder="Date Range" style="max-width:140px"><button type="button" class="remove-item">×</button></div>
+    <input type="text" name="org" placeholder="University · City, Country" class="full-width">
+    <textarea name="bullets" placeholder="Thesis / highlights — one per line" rows="2"></textarea>
+  </div>
+</template>
+<script>
+const DEFAULT={name:"Mona Pouresmaeil",tagline:"MSc Computer Engineering — AI & Data Analytics · Politecnico di Torino · Graduating July 2026 · Available Now",medal:"🥈 SemEval 2026 Task 1 — Ranked 2nd Globally · Paper Accepted",location:"📍 Turin, Italy — open to remote worldwide",phone:"+39 351 353 2803",email:"mona.pouresmaeil.it@gmail.com",links:[{name:"Portfolio",url:"https://monaii.github.io/My_Portfolio/"},{name:"GitHub",url:"https://github.com/monaii"},{name:"LinkedIn",url:"https://www.linkedin.com/in/mona-pouresmaeil-8b04a82b4"},{name:"Kaggle",url:"https://www.kaggle.com/monapouresmaeil"}],summary:"**AI Engineer** with hands-on experience building **LLM-based pipelines**, **RAG systems**, and **Agentic AI** applications from scratch.\n**Completed Master's thesis and AI Engineering internship** at **Brain Technologies**, designing a full **document validation framework** — custom chunking, hybrid retrieval, and compliance verification in pure Python.\nCo-author of an **accepted SemEval 2026 paper** on humor generation via RAG and DPO alignment, ranked **2nd globally**.\n**MSc Computer Engineering at Politecnico di Torino** expected July 2026; **available immediately** for junior AI/ML/LLM roles. Open to remote worldwide or on-site in Turin.",experience:[{title:"AI Engineer Intern",date:"Jan 2026 – May 2026",org:"Brain Technologies · Turin, Italy · On-site",url:"https://www.brain-tech.it/Home/Index",bullets:"Worked on an industry thesis project focused on automated validation of technical and compliance documents.\nContributed production-oriented software with attention to reliability, traceability, and practical implementation under real business constraints."},{title:"Full-Stack Developer",date:"Mar 2020 – Aug 2020",org:"Rastava Academy · Remote",url:"https://rastava.academy/",bullets:"Built and maintained full-stack web features using Python-Django, working across frontend views, backend logic, and database interactions.\nDeveloped and integrated RESTful APIs to connect the frontend with the backend and support smooth data flow across the application.\nWorked in an Agile, Scrum environment, contributing to sprint planning, task breakdown, iterative delivery, and team coordination.\nCollaborated with developers and stakeholders in English to refine requirements, debug features, and deliver changes aligned with sprint goals.\nSupported UI updates with HTML, CSS, and JavaScript, and handled backend validation, server-side logic, and database queries when needed."}],projects:[{name:"🥈 SemEval 2026 Task 1 — 2nd Place Globally",url:"https://github.com/Sinaeskandari/semeval2026-task1-mwahaha",tag:"NLP Competition · Paper Accepted",bullets:"**Paper accepted** for publication in SemEval 2026 proceedings: _\"Enhancing Humor Generation through RAG and Synthetic DPO Alignment.\"\nArchitected a **multi-model tournament** (Llama 3, Qwen, Gemma) with **LLM-as-a-Judge** Round Robin evaluation to select the best humor outputs.\nBuilt a **RAG pipeline** for deep semantic headline context; refined final submission with **LoRA fine-tuning** and **DPO alignment** to match human preference benchmarks.",tech:"Python · RAG · LoRA · DPO · Llama 3 · Qwen · Gemma · LLM-as-a-Judge · Hugging Face · Unsloth"},{name:"Automated Document Validation Framework — MSc Thesis",url:"",tag:"Brain Technologies · 2026",bullets:"Designed the architecture for automated document validation with custom chunking and PDF parsing.\nBuilt **hybrid retrieval** using **Qdrant** and keyword search fused with **RRF**.\nIntegrated **Qwen 2.5**, confidence scoring, **Ragas** evaluation, and **LlamaIndex** orchestration.",tech:"Python · LlamaIndex · Qdrant · RRF · Ragas · Docling · Qwen 2.5"},{name:"RAG Document Validation Framework — Personal Project",url:"https://github.com/monaii/Rag-document-validator",tag:"Personal · 2025",bullets:"Built an end-to-end **LangGraph pipeline** (retrieve → generate → verify) for automated document Q&A, with 3-tier answer confidence scoring (supported / partially supported / unsupported) and requirement validation against compliance criteria (ISO 27001).\nSupports multi-format ingestion (PDF, DOCX, PPTX) with **pluggable vector stores** (ChromaDB, FAISS, Pinecone) and local LLM inference via **Ollama + Llama 3.\nServed as the technical foundation and proof-of-concept for the production-grade compliance system later developed at Brain Technologies.",tech:"Python · LangChain · LangGraph · Ollama · Llama 3 · ChromaDB · FAISS · Pinecone"}],skills:"Generative AI & LLMs: RAG (hybrid retrieval, custom chunking, confidence scoring), Agentic AI, Multi-Agent Orchestration, LoRA Fine-tuning, DPO Alignment, Prompt Engineering, Hallucination Mitigation, LLM Evaluation\nModels & AI Frameworks: Llama 3, Qwen, Gemma, GPT, Gemini · LangChain, LangGraph, crewAI, Hugging Face, Unsloth, Ragas, ChromaDB, FAISS, Qdrant, Ollama\nML & Data Science: PyTorch, TensorFlow, scikit-learn, XGBoost, Pandas, NumPy, spaCy, NLTK · Feature Engineering, NLP, Computer Vision\nInfrastructure & DevOps: Docker, AWS, vLLM · Git/GitHub, LLMOps\nSoftware Engineering: Python (primary), SQL, Bash, REST APIs, Flask, Streamlit, FastAPI",education:[{title:"MSc Computer Engineering — AI & Data Analytics",date:"Sep 2023 – Jul 2026",org:"Politecnico di Torino · Turin, Italy",bullets:"Thesis: _Automated Document Validation Framework using RAG and LLMs — developed in partnership with Brain Technologies"},{title:"BSc Computer Science & Software Engineering",date:"Feb 2018 – Sep 2022",org:"Shariaty University · Tehran, Iran",bullets:"Coursework in algorithms, data structures, software engineering, databases, and operating systems"}],certifications:[{text:"RAG for Professionals with LangGraph, Python and OpenAI — Udemy (Dec 2025)",url:"https://www.udemy.com/certificate/UC-b9fe4c49-5e6f-45a2-ac35-5f4f3751d9f5/"},{text:"AI Agents Intensive Course — Google (2025)",url:"https://www.kaggle.com/certification/badges/monapouresmaeil/105"},{text:"Introduction to TensorFlow for AI, ML & Deep Learning — DeepLearning.AI (Nov 2025)",url:"https://www.coursera.org/account/accomplishments/verify/DRXAIXF9J6DU"},{text:"GenAI Intensive Program — Kaggle (2025)",url:"https://www.kaggle.com/certification/badges/monapouresmaeil/96"}],languages:[{name:"English",level:"C1 — Fluent"},{name:"Italian",level:"B1 — Actively improving"},{name:"Persian",level:"Native"}]};
+const MM=3.7795275591,A4H=297*MM,MARG=14*MM,PAGE_H=A4H-2*MARG;let data=loadData(),zoom=0.70,fontSize=12,editorZoom=1;
+function loadData(){try{const s=localStorage.getItem('cvb5');return s?JSON.parse(s):clone(DEFAULT)}catch{return clone(DEFAULT)}}function save(){localStorage.setItem('cvb5',JSON.stringify(data))}function clone(o){return JSON.parse(JSON.stringify(o))}
+function md(t){if(!t)return'';return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/_(.*?)_/g,'<em>$1</em>').replace(/\n/g,'<br>')}function bullets(raw){if(!raw)return'';const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return'';return `<ul class="cv-bullets">${lines.map(l=>`<li>${md(l)}</li>`).join('')}</ul>`}
+function renderCV(){const el=document.getElementById('cv-preview'),d=data;const links=(d.links||[]).map((l,i)=>`<a href="${l.url}" target="_blank" class="cv-header-link">${l.name}</a>${i<d.links.length-1?' · ':''}`).join('');const exp=(d.experience||[]).map(e=>`<div class="cv-block cv-entry"><div class="cv-entry-header"><span class="cv-entry-title">${md(e.title)}</span><span class="cv-entry-date">${e.date||''}</span></div><div class="cv-entry-org">${e.url?`<a href="${e.url}" target="_blank" class="cv-header-link">${md(e.org)}</a>`:md(e.org)}</div>${bullets(e.bullets)}</div>`).join('');const proj=(d.projects||[]).map(p=>{const tp=(p.tech||'').split('·').map(t=>t.trim()).filter(Boolean);const nameEl=p.url?`<a href="${p.url}" target="_blank" class="cv-proj-link">${md(p.name)}</a>`:`<span>${md(p.name)}</span>`;return `<div class="cv-block cv-entry"><div class="cv-project-header"><span class="cv-entry-title">${nameEl}</span>${p.tag?`<span class="cv-project-tag">${p.tag}</span>`:''}</div>${bullets(p.bullets)}${tp.length?`<div class="cv-tech-line">${tp.join(' · ')}</div>`:''}</div>`}).join('');const skillRows=d.skills?`<div class="cv-block cv-skill-val">${md(d.skills)}</div>`:'';const edu=(d.education||[]).map(e=>`<div class="cv-block cv-entry"><div class="cv-entry-header"><span class="cv-entry-title">${md(e.title)}</span><span class="cv-entry-date">${e.date||''}</span></div><div class="cv-entry-org">${md(e.org)}</div>${bullets(e.bullets)}</div>`).join('');const certs=(d.certifications||[]).map(c=>`<div class="cv-block cv-cert-item">${c.url?`<a href="${c.url}" target="_blank" class="cv-cert-link">${md(c.text)}</a>`:md(c.text)}</div>`).join('');const langs=`<div class="cv-lang-row">${(d.languages||[]).map(l=>`<div class="cv-lang"><strong>${l.name}</strong><span>${l.level}</span></div>`).join('')}</div>`;el.innerHTML=`<div class="cv-header"><div><div class="cv-name">${d.name||'Your Name'}</div><div class="cv-tagline">${md(d.tagline)}</div>${d.medal?`<div class="cv-medal">${d.medal}</div>`:''}</div><div class="cv-header-right">${d.location?`<div>${d.location}</div>`:''}${d.phone?`<div>${d.phone}</div>`:''}${d.email?`<div><a href="mailto:${d.email}" class="cv-header-link">${d.email}</a></div>`:''}${links?`<div>${links}</div>`:''}</div></div>${d.summary?`<div class="cv-section"><div class="cv-section-title">Summary</div><div class="cv-block cv-summary">${md(d.summary)}</div></div>`:''}${exp?`<div class="cv-section"><div class="cv-section-title">Experience</div>${exp}</div>`:''}${proj?`<div class="cv-section"><div class="cv-section-title">Projects</div>${proj}</div>`:''}${skillRows?`<div class="cv-section"><div class="cv-section-title">Technical Skills</div>${skillRows}</div>`:''}${edu?`<div class="cv-section"><div class="cv-section-title">Education</div>${edu}</div>`:''}${certs?`<div class="cv-section"><div class="cv-section-title">Certifications</div>${certs}</div>`:''}${langs?`<div class="cv-section"><div class="cv-section-title">Languages</div>${langs}</div>`:''}`}
+function updateBreakAndSpacer(){const doc=document.getElementById('cv-preview'),line=document.getElementById('break-line'),ind=document.getElementById('page-count');doc.querySelectorAll('.page2-top-margin').forEach(el=>el.remove());void doc.offsetHeight;const docRect=doc.getBoundingClientRect();const scrollT=doc.scrollTop||0;const page1End=MARG+PAGE_H;const blocks=[...doc.querySelectorAll('.cv-block')];let breakAfterEl=null,breakY=page1End;blocks.forEach(b=>{const r=b.getBoundingClientRect();const bBot=r.bottom-docRect.top+scrollT;if(bBot<=page1End){breakAfterEl=b;breakY=bBot}});line.style.top=breakY+'px';if(breakAfterEl){const spacer=document.createElement('div');spacer.className='page2-top-margin';spacer.style.height=((page1End-breakY)+MARG)+'px';spacer.style.display='block';breakAfterEl.after(spacer)}const rawPages=doc.scrollHeight/A4H;if(rawPages<=2.05){ind.textContent=`✓ ~${rawPages.toFixed(2)} pages`;ind.className='page-ok'}else{ind.textContent=`⚠ ${rawPages.toFixed(2)} pages — reduce font`;ind.className='page-over'}}
+function applyFontSize(){const doc=document.getElementById('cv-preview');doc.style.setProperty('--fs',fontSize+'px');document.getElementById('fs-value').textContent=fontSize+'px';void doc.offsetHeight;updateBreakAndSpacer();applyZoom()}
+function applyZoom(){const wrap=document.getElementById('cv-wrap'),doc=document.getElementById('cv-preview');wrap.style.transform=`scale(${zoom})`;wrap.style.width=(210*MM)+'px';wrap.style.height=(doc.scrollHeight*zoom+80)+'px';document.getElementById('zoom-level').textContent=Math.round(zoom*100)+'%'}
+function applyEditorZoom(){document.documentElement.style.setProperty('--editor-zoom',editorZoom);document.getElementById('editor-zoom-value').textContent=Math.round(editorZoom*100)+'%'}
+function formToData(){const f=document.getElementById('cv-form');const g=n=>f.querySelector(`[name="${n}"]`).value||'';data.name=g('name');data.tagline=g('tagline');data.medal=g('medal');data.location=g('location');data.phone=g('phone');data.email=g('email');data.summary=g('summary');data.links=g('links').split('\n').filter(l=>l.includes('|')).map(l=>{const[n,...r]=l.split('|');return {name:n.trim(),url:r.join('|').trim()}});data.certifications=g('certifications').split('\n').filter(l=>l.trim()).map(l=>{if(l.includes('|')){const[t,...r]=l.split('|');return {text:t.trim(),url:r.join('|').trim()};}return {text:l.trim(),url:''};});data.languages=g('languages').split('\n').filter(l=>l.includes('|')).map(l=>{const[n,...r]=l.split('|');return {name:n.trim(),level:r.join('|').trim()}});data.skills=g('skills');data.experience=getDyn('experience');data.projects=getDyn('projects');data.education=getDyn('education')}
+function getDyn(sec){return [...document.querySelectorAll(`#${sec}-section .dynamic-item`)].map(el=>{const o={};el.querySelectorAll('input,textarea').forEach(i=>o[i.name]=i.value);return o})}
+function dataToForm(){const f=document.getElementById('cv-form');const s=(n,v)=>{const el=f.querySelector(`[name="${n}"]`);if(el)el.value=v||''};s('name',data.name);s('tagline',data.tagline);s('medal',data.medal);s('location',data.location);s('phone',data.phone);s('email',data.email);s('summary',data.summary);s('links',(data.links||[]).map(l=>`${l.name}|${l.url}`).join('\n'));s('certifications',(data.certifications||[]).map(c=>`${c.text}|${c.url}`).join('\n'));s('languages',(data.languages||[]).map(l=>`${l.name}|${l.level}`).join('\n'));s('skills',data.skills);buildDyn('experience',data.experience);buildDyn('projects',data.projects);buildDyn('education',data.education)}
+function buildDyn(sec,items){const c=document.querySelector(`#${sec}-section .items-container`);c.innerHTML='';(items||[]).forEach(item=>addDyn(sec,item))}
+function addDyn(sec,item={}){const tpl=document.getElementById(`${sec}-template`);if(!tpl)return;const cl=tpl.content.cloneNode(true);Object.entries(item).forEach(([k,v])=>{const el=cl.querySelector(`[name="${k}"]`);if(el)el.value=v});document.querySelector(`#${sec}-section .items-container`).appendChild(cl)}
+let timer=null;function scheduleUpdate(){clearTimeout(timer);timer=setTimeout(()=>{formToData();renderCV();applyFontSize();save()},120)}
+document.addEventListener('DOMContentLoaded',()=>{dataToForm();renderCV();applyFontSize();applyEditorZoom();document.getElementById('cv-form').addEventListener('input',scheduleUpdate);document.querySelectorAll('.add-item').forEach(btn=>{btn.addEventListener('click',()=>{addDyn(btn.dataset.section);scheduleUpdate()})});document.getElementById('cv-form').addEventListener('click',e=>{if(e.target.classList.contains('remove-item')){e.target.closest('.dynamic-item').remove();scheduleUpdate()}});document.getElementById('zoom-in').addEventListener('click',()=>{zoom=Math.min(1.4,zoom+0.05);applyZoom()});document.getElementById('zoom-out').addEventListener('click',()=>{zoom=Math.max(0.3,zoom-0.05);applyZoom()});const slider=document.getElementById('fs-slider');slider.value=fontSize;slider.addEventListener('input',()=>{fontSize=parseFloat(slider.value);applyFontSize()});const eSlider=document.getElementById('editor-zoom-slider');eSlider.value=editorZoom;eSlider.addEventListener('input',()=>{editorZoom=parseFloat(eSlider.value);applyEditorZoom()});document.getElementById('print-btn').addEventListener('click',()=>{document.querySelectorAll('.page2-top-margin').forEach(el=>el.remove());void document.getElementById('cv-preview').offsetHeight;window.print();setTimeout(()=>{updateBreakAndSpacer();applyZoom()},500)});document.getElementById('reset-btn').addEventListener('click',()=>{if(confirm('Reset all data to default?')){data=clone(DEFAULT);dataToForm();renderCV();applyFontSize();save()}});const handle=document.getElementById('resize-handle');let dragging=false;handle.addEventListener('mousedown',e=>{dragging=true;document.body.style.cursor='col-resize';e.preventDefault()});window.addEventListener('mousemove',e=>{if(!dragging)return;const min=320,max=650;const w=Math.min(max,Math.max(min,e.clientX));document.documentElement.style.setProperty('--editor-w',w+'px')});window.addEventListener('mouseup',()=>{if(dragging){dragging=false;document.body.style.cursor='default'}})});
+</script>
+<style>
+a.cv-header-link{color:var(--muted)!important;text-decoration:none!important;font-family:'Sora',sans-serif!important;font-size:inherit!important}a.cv-header-link:hover{color:var(--blue)!important}
+a.cv-proj-link{color:var(--text)!important;text-decoration:none!important;font-family:'Sora',sans-serif!important;font-weight:600!important;font-size:inherit!important}a.cv-proj-link:hover{color:var(--blue)!important}
+a.cv-cert-link{color:var(--text)!important;text-decoration:none!important;font-family:'Sora',sans-serif!important;font-size:inherit!important}a.cv-cert-link:hover{color:var(--blue)!important}
+</style>
+</body>
+</html>
